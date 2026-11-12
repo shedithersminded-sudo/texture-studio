@@ -7,12 +7,13 @@ const ACCENTS = ['#7c9cff', '#a78bfa', '#f472b6', '#fb7185', '#f59e0b', '#34d399
 export default function (el) {
   const s = S.settings(); const page = h('div', { class: 'page', style: { maxWidth: '900px' } }); el.append(page);
   const set = (k, after) => async v => { s[k] = v; await S.save(s); applyLook(); after?.(); };
+  const lookHolder = () => { const box = h('div', { class: 'f' }); import('../app.js').then(m => box.append(m.lookControls(() => { Object.assign(s, S.settings()); draw(); }))); return box; };
   const draw = () => {
     clear(page);
     page.append(h('div', { class: 'ph' }, h('div', null, h('h1', null, 'Settings'), h('div', { class: 'sub' }, 'Interface and workflow preferences. Security, storage, backups and integrations live in the Admin Panel.')), h('div', { class: 'act' }, h('button', { class: 'btn', onclick: () => nav.go('admin') }, icon('shield'), 'Admin Panel'))));
     page.append(panel('Appearance', [
-      select('Theme', [['dark', 'Dark'], ['light', 'Light']], s.theme, set('theme')),
-      h('div', { class: 'f' }, h('label', null, 'Accent color'), h('div', { class: 'row' }, ACCENTS.map(c => h('button', { class: 'swatch', style: { background: c, cursor: 'pointer', outline: s.accent === c ? '2px solid var(--text)' : 'none' }, onclick: () => set('accent', draw)(c) })), h('input', { type: 'color', value: s.accent, onchange: e => set('accent', draw)(e.target.value) }))),
+      lookHolder(),
+      h('div', { class: 'f' }, h('label', null, 'Custom accent color'), h('div', { class: 'row' }, ACCENTS.map(c => h('button', { class: 'swatch', style: { background: c, cursor: 'pointer', outline: s.accent === c ? '2px solid var(--text)' : 'none' }, onclick: () => set('accent', draw)(c) })), h('input', { type: 'color', value: s.accent, onchange: e => set('accent', draw)(e.target.value) }))),
       select('Interface mode', [['beginner', 'Beginner (simplified controls)'], ['advanced', 'Advanced (all options)']], s.mode, set('mode'), 'Beginner mode hides advanced controls across the studio. You can switch any time.'),
       check('Collapse the sidebar', s.sidebarCollapsed, v => { set('sidebarCollapsed')(v); document.querySelector('.shell')?.classList.toggle('collapsed', v); }),
     ], { iconName: 'sun' }));

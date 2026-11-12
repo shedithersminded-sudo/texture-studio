@@ -1,4 +1,5 @@
 :root{
+  --tint:220,228,255;
   --bg:#0d0e11;--panel:#15171c;--panel2:#1b1e24;--panel3:#23262e;--line:#2a2e37;--line2:#363b46;
   --text:#e7e9ee;--muted:#8c94a3;--dim:#5f6674;
   --accent:#7c9cff;--accent-ink:#0d0e11;
@@ -15,6 +16,7 @@
   color-scheme:light;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.45 var(--font)}
 body{overflow:hidden}
 a{color:var(--accent);text-decoration:none}
@@ -292,3 +294,74 @@ table.t tr:hover td{background:var(--panel2)}
 @keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}
 @keyframes pop{from{transform:scale(.6);opacity:0}}
 @keyframes fadein{from{opacity:0}}
+
+/* ===== Clear theme: see-through plastic shell over a circuit board ===== */
+:root[data-theme="clear"]{
+  --bg:#10141f;--panel:rgba(214,222,255,.10);--panel2:rgba(214,222,255,.08);--panel3:rgba(214,222,255,.16);
+  --line:rgba(225,232,255,.20);--line2:rgba(225,232,255,.34);
+  --text:#f3f5fc;--muted:#b4bbd2;--dim:#838aa3;
+  --shadow:0 14px 40px rgba(0,0,0,.5);--r:10px;--r2:14px;
+  --acrylic:linear-gradient(105deg,transparent 55%,rgba(255,110,140,.07) 64%,rgba(255,220,120,.06) 70%,rgba(110,220,255,.09) 76%,rgba(190,130,255,.07) 82%,transparent 90%),linear-gradient(160deg,rgba(235,240,255,.17),rgba(220,228,255,.04) 40%,rgba(225,232,255,.08));
+  --frost:blur(5px) saturate(.8) brightness(.66);
+  --edge:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.25),inset 1px 0 0 rgba(255,255,255,.12),inset -1px 0 0 rgba(255,255,255,.08);
+  --gray:linear-gradient(180deg,#a9adb2,#7d8187);
+  color-scheme:dark;
+}
+[data-theme="clear"] body{background:radial-gradient(130% 90% at 50% 40%,transparent 40%,rgba(4,6,12,.7)),linear-gradient(rgba(var(--tint),.12),rgba(var(--tint),.12)),linear-gradient(rgba(14,16,26,.4),rgba(14,16,26,.4)),url(pcb.svg) 0 0/480px 480px,#11161f;background-attachment:fixed}
+[data-theme="clear"] .shell{background:transparent}
+[data-theme="clear"] .main{background:rgba(10,12,22,.3)}
+/* molded clear surfaces */
+[data-theme="clear"] .side,[data-theme="clear"] .top,[data-theme="clear"] .card,[data-theme="clear"] .stat,[data-theme="clear"] .panel,[data-theme="clear"] .tile,
+[data-theme="clear"] .toolbar,[data-theme="clear"] .modal,[data-theme="clear"] .auth .box,[data-theme="clear"] .ws>.l,[data-theme="clear"] .ws>.r,[data-theme="clear"] .gres,[data-theme="clear"] .menu{
+  background:var(--acrylic),rgba(var(--tint),.11);-webkit-backdrop-filter:var(--frost);backdrop-filter:var(--frost);
+  border:1px solid var(--line2);box-shadow:var(--edge),0 6px 18px rgba(0,0,0,.28)}
+[data-theme="clear"] .card,[data-theme="clear"] .stat,[data-theme="clear"] .panel,[data-theme="clear"] .tile{border-radius:var(--r2)}
+[data-theme="clear"] .card .card,[data-theme="clear"] .panel .card{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.05);box-shadow:var(--edge)}
+/* sidebar: thick clear wall with vent ribs along the edge */
+[data-theme="clear"] .side{border-radius:0;border-width:0 1px 0 0;position:relative}
+[data-theme="clear"] .side,[data-theme="clear"] .top{background:var(--acrylic),rgba(var(--tint),.16)}
+[data-theme="clear"] .side::after{content:"";position:absolute;top:60px;bottom:60px;right:4px;width:7px;border-radius:4px;opacity:.55;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 2px,transparent 2px 7px)}
+[data-theme="clear"] .nav a{border-radius:10px}
+[data-theme="clear"] .nav a.on{background:rgba(255,255,255,.14);box-shadow:var(--edge)}
+[data-theme="clear"] .top{border-radius:0;border-width:0 0 1px}
+/* logo: a clear disc lid */
+[data-theme="clear"] .brand .logo{border-radius:50%;background:radial-gradient(circle at 50% 50%,#10151a 0 18%,rgba(255,255,255,.15) 19% 22%,transparent 23%),conic-gradient(from 30deg,rgba(255,255,255,.55),rgba(255,255,255,.08),rgba(255,255,255,.4),rgba(255,255,255,.05),rgba(255,255,255,.55));box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),0 2px 6px rgba(0,0,0,.4)}
+/* buttons: chunky clear acrylic caps */
+[data-theme="clear"] .btn{border-radius:999px;border:1px solid rgba(255,255,255,.4);background:radial-gradient(120% 140% at 30% 0%,rgba(255,255,255,.32),rgba(255,255,255,.06) 55%,rgba(255,255,255,.12));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.6),inset 0 -2px 3px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.3);color:var(--text);transition:transform .08s,box-shadow .15s}
+[data-theme="clear"] .btn:hover{background:radial-gradient(120% 140% at 30% 0%,rgba(255,255,255,.42),rgba(255,255,255,.1) 55%,rgba(255,255,255,.16))}
+[data-theme="clear"] .btn:active{transform:translateY(1px);box-shadow:inset 0 2px 4px rgba(0,0,0,.35)}
+[data-theme="clear"] .btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
+[data-theme="clear"] .btn.ghost:hover{background:rgba(255,255,255,.12);box-shadow:var(--edge)}
+[data-theme="clear"] .btn.pri{background:radial-gradient(120% 140% at 30% 0%,rgba(255,255,255,.5),color-mix(in srgb,var(--accent) 55%,transparent) 55%,color-mix(in srgb,var(--accent) 75%,transparent));border-color:rgba(255,255,255,.55);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+[data-theme="clear"] .btn.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent),inset 0 1px 1px rgba(255,255,255,.5)}
+/* inputs: recessed clear wells */
+[data-theme="clear"] input[type=text],[data-theme="clear"] input[type=password],[data-theme="clear"] input[type=number],[data-theme="clear"] input[type=email],[data-theme="clear"] input[type=search],[data-theme="clear"] input[type=date],[data-theme="clear"] select,[data-theme="clear"] textarea{
+  background:rgba(6,8,18,.55);border:1px solid rgba(255,255,255,.22);border-radius:8px;box-shadow:inset 0 2px 4px rgba(0,0,0,.45)}
+[data-theme="clear"] select option{background:#1b2030}
+/* status bar: gray plastic port strip */
+[data-theme="clear"] .status{background:var(--gray);color:#1f2326;border-top:1px solid #c4c8cc;box-shadow:inset 0 1px 0 rgba(255,255,255,.5);position:relative;padding-left:120px}
+[data-theme="clear"] .status::before{content:"";position:absolute;left:12px;top:6px;width:92px;height:13px;border-radius:3px;background:repeating-linear-gradient(90deg,#55595e 0 6px,#8d9196 6px 9px);box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+[data-theme="clear"] .status span{color:#1f2326}
+/* misc surfaces */
+[data-theme="clear"] .tabs{border-bottom-color:var(--line2)}
+[data-theme="clear"] .callout{background:rgba(255,255,255,.07);border-color:var(--line2)}
+[data-theme="clear"] .prog{background:rgba(0,0,0,.35);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+[data-theme="clear"] .stage{background-color:rgba(6,8,18,.6)}
+[data-theme="clear"] .auth{background:transparent}
+[data-theme="clear"] .lesson-link{background:rgba(255,255,255,.07)}
+[data-theme="clear"] .lesson-link:hover{background:rgba(255,255,255,.14)}
+[data-theme="clear"] .g-opt,[data-theme="clear"] .pl-chip,[data-theme="clear"] .quote{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28)}
+[data-theme="clear"] .g-opt{border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+[data-theme="clear"] .game{border-color:rgba(255,255,255,.45)}
+[data-theme="clear"] .modal-bg{background:rgba(0,0,0,.45)}
+[data-theme="clear"] .badge{box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+[data-theme="clear"] .card,[data-theme="clear"] .modal,[data-theme="clear"] .auth .box{box-shadow:var(--edge),0 0 0 1px rgba(160,180,255,.08),0 10px 28px rgba(0,0,0,.4),0 0 24px rgba(120,140,255,.06)}
+.look-pop{position:fixed;z-index:300;width:300px;padding:14px}
+.look .row{gap:6px}
+.plastics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.plastic{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:12px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);cursor:pointer;font-size:11px}
+.plastic i{display:block;width:34px;height:22px;border-radius:7px;background:linear-gradient(105deg,transparent 50%,rgba(255,255,255,.5) 60%,transparent 70%),rgba(var(--pt),.55);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6),inset 0 -3px 5px rgba(0,0,0,.25),0 0 0 2px rgba(var(--pt),.35)}
+.plastic.on{border-color:var(--pa);color:var(--text);box-shadow:0 0 0 1px var(--pa)}
+.plastic:hover{color:var(--text)}

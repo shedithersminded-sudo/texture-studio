@@ -130,7 +130,7 @@ export const DEFAULT_TREE = `ULTIMATE_TEXTURE_STUDIO
 export const DASH_WIDGETS = ['actions', 'stats', 'recentProjects', 'recentTextures', 'materials', 'presets', 'collections', 'business', 'academy', 'exports', 'backup'];
 const DEFAULTS = {
   id: 'settings', type: 'settings',
-  theme: 'dark', accent: '#7c9cff', mode: 'advanced', autosaveSec: 60, undoDepth: 40, defaultSize: 1024,
+  theme: 'clear', plastic: 'clear', accent: '#7c9cff', mode: 'advanced', autosaveSec: 60, undoDepth: 40, defaultSize: 1024,
   idleMin: 30, rememberIdleMin: 240, sidebarCollapsed: false, normalY: 'OpenGL',
   dashboard: { order: DASH_WIDGETS.slice(), hidden: [] },
   security: { totpSecret: null, email: '', reauthMin: 5 },

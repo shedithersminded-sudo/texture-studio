@@ -4,6 +4,7 @@ import * as A from './core/auth.js';
 import { NAV, HIDDEN, nav } from './core/nav.js';
 import { passwordScore, base32, rand } from './core/crypto.js';
 import { autoBackupTick } from './core/backup.js';
+import { PLASTICS, plasticOf } from './core/looks.js';
 
 const root = document.getElementById('app');
 window.addEventListener('error', e => { if (S.hasKey()) S.err('Unhandled error', e.error || e.message); });
@@ -11,7 +12,10 @@ window.addEventListener('unhandledrejection', e => { if (S.hasKey()) S.err('Unha
 
 function applyLook() {
   const s = S.settings(), d = document.documentElement;
-  d.dataset.theme = s.theme; d.style.setProperty('--accent', s.accent);
+  // One-time switch of existing dark setups to the new clear look.
+  if (S.hasKey() && !s.lookV2) { if (s.theme === 'dark') s.theme = 'clear'; S.saveSettings({ theme: s.theme, lookV2: 1 }).catch(() => { }); }
+  d.dataset.theme = s.theme; const pl = plasticOf(s.plastic); d.style.setProperty('--tint', pl[2]);
+  try { localStorage.setItem('uts-theme', s.theme); localStorage.setItem('uts-tint', pl[2]); } catch { } d.style.setProperty('--accent', s.accent);
   const c = parseInt(s.accent.slice(1), 16), lum = ((c >> 16 & 255) * .299 + (c >> 8 & 255) * .587 + (c & 255) * .114);
   d.style.setProperty('--accent-ink', lum > 150 ? '#0d0e11' : '#ffffff');
   document.body.classList.toggle('beginner', s.mode === 'beginner');
@@ -139,7 +143,7 @@ function startStudio() {
     h('header', { class: 'top' }, crumbsEl, search,
       h('div', { class: 'tools' },
         tb('save', 'Save (Ctrl+S)', () => nav.ctrl?.save?.(), 'tb-save'), tb('undo', 'Undo (Ctrl+Z)', () => nav.ctrl?.undo?.(), 'tb-undo'), tb('redo', 'Redo (Ctrl+Y)', () => nav.ctrl?.redo?.(), 'tb-redo'),
-        tb('download', 'Export Center', () => nav.go('export', nav.ctrl?.exportArg?.() || '')), tb('help', 'Help Center', () => nav.go('help', nav.current)), tb('settings', 'Settings', () => nav.go('settings')),
+        tb('download', 'Export Center', () => nav.go('export', nav.ctrl?.exportArg?.() || '')), tb('help', 'Help Center', () => nav.go('help', nav.current)), tb('palette', 'Colors and theme', e => lookPicker(e.currentTarget)), tb('settings', 'Settings', () => nav.go('settings')),
         tb('lock', 'Lock and sign out', () => lockNow('Signed out')))),
     mainEl = h('main', { class: 'main' }),
     h('footer', { class: 'status' }, statusMsg, h('span', { class: 'grow' }), statusTasks, statusStore, h('span', null, 'Data: this browser, encrypted')));
@@ -203,6 +207,25 @@ async function reauth() {
   });
 }
 
+// ====================== LOOK PICKER ======================
+export function lookControls(onChange) {
+  const s = S.settings();
+  const pick = async patch => { await S.saveSettings(patch); applyLook(); onChange?.(); };
+  return h('div', { class: 'look' },
+    h('div', { class: 'small muted' }, 'Theme'),
+    h('div', { class: 'row' }, [['clear', 'Clear'], ['dark', 'Dark'], ['light', 'Light']].map(([v, l]) => h('button', { class: 'btn sm' + (s.theme === v ? ' on' : ''), onclick: () => pick({ theme: v }) }, l))),
+    h('div', { class: 'small muted', style: { marginTop: '10px' } }, s.theme === 'clear' ? 'Plastic color' : 'Color (sets the accent)'),
+    h('div', { class: 'plastics' }, PLASTICS.map(([id, name, tint, acc]) => h('button', { class: 'plastic' + ((s.plastic || 'clear') === id ? ' on' : ''), title: name, style: { '--pt': tint, '--pa': acc }, onclick: () => pick({ plastic: id, accent: acc }) }, h('i'), h('span', null, name)))));
+}
+function lookPicker(anchor) {
+  const old = document.querySelector('.look-pop'); if (old) { old.remove(); return; }
+  const r = anchor.getBoundingClientRect();
+  const pop = h('div', { class: 'look-pop card', style: { top: (r.bottom + 6) + 'px', right: Math.max(8, innerWidth - r.right) + 'px' } });
+  const draw = () => { clear(pop); pop.append(lookControls(draw)); };
+  draw(); document.body.append(pop);
+  setTimeout(() => document.addEventListener('pointerdown', function off(e) { if (!pop.contains(e.target) && !anchor.contains(e.target)) { pop.remove(); document.removeEventListener('pointerdown', off); } }), 0);
+}
+
 // ====================== GLOBAL SEARCH ======================
 function globalSearch() {
   const inp = h('input', { type: 'search', placeholder: 'Search everything (Ctrl+K)' }); const res = h('div', { class: 'gres', hidden: true });
@@ -230,6 +253,7 @@ function globalSearch() {
 (async () => {
   if (!window.crypto?.subtle || !window.indexedDB) { root.innerHTML = '<div class="boot">This browser lacks Web Crypto or IndexedDB. Use a current Chrome, Edge or Firefox over http://localhost.</div>'; return; }
   try { await navigator.storage?.persist?.(); } catch { }
+  try { document.documentElement.dataset.theme = localStorage.getItem('uts-theme') || 'clear'; const t = localStorage.getItem('uts-tint'); if (t) document.documentElement.style.setProperty('--tint', t); } catch { document.documentElement.dataset.theme = 'clear'; }
   if (!(await A.isSetup())) setupScreen(); else loginScreen();
 })();
 export { base32, rand };
