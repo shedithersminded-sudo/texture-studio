@@ -3,8 +3,13 @@
 import * as db from './db.js';
 import * as C from './crypto.js';
 import * as S from './store.js';
+import { isOwnerKey } from './owner.js';
 
-let dataKey = null; let lastReauth = 0;
+let dataKey = null; let lastReauth = 0; let myRole = 'member';
+// Accounts made before roles existed belong to the owner.
+const roleOf = m => m?.role || 'owner';
+export const role = () => myRole;
+export const isOwner = () => myRole === 'owner';
 const norm = u => u.trim().toLowerCase();
 export const getMeta = () => db.meta.get('auth');
 export const isSetup = async () => !!(await getMeta());
@@ -16,8 +21,10 @@ export async function secEvent(msg, level = 'info') {
 }
 export const secEvents = async () => (await db.meta.get('secEvents')) || [];
 
-export async function setup({ username, password, email, questions }) {
+export async function setup({ username, password, email, questions, ownerKey }) {
   if (await isSetup()) throw new Error('Setup has already been completed.');
+  const r = ownerKey ? (await isOwnerKey(ownerKey) ? 'owner' : null) : 'member';
+  if (!r) throw new Error('That owner key is not valid.');
   const key = await C.newDataKey();
   const userSalt = C.b64(C.rand(16));
   const codes = Array.from({ length: 8 }, C.recoveryCode);
@@ -25,13 +32,13 @@ export async function setup({ username, password, email, questions }) {
     v: 1, created: Date.now(), userSalt, userHash: await C.sha256(userSalt + norm(username)),
     pw: await C.lockWith(key, password),
     recovery: await Promise.all(codes.map(c => C.lockWith(key, c, 120000))),
-    questions: null, totp: false, fails: 0, lockUntil: 0,
+    questions: null, totp: false, fails: 0, lockUntil: 0, role: r,
   };
   if (questions?.length) meta.questions = { list: questions.map(q => q.q), rec: await C.lockWith(key, answersSecret(questions.map(q => q.a))) };
   await db.meta.set('auth', meta);
-  dataKey = key; S.setKey(key); await S.loadAll();
+  dataKey = key; myRole = r; S.setKey(key); await S.loadAll();
   const s = S.settings(); s.security.email = email || ''; s.owner = username.trim(); await S.save(s);
-  await secEvent('Administrator account created'); await S.log('security', 'Administrator account created');
+  const what = r === 'owner' ? 'Owner account created' : 'Account created'; await secEvent(what); await S.log('security', what);
   lastReauth = Date.now();
   return codes;
 }
@@ -53,7 +60,7 @@ export async function login(username, password) {
   return key;
 }
 export async function finishLogin(key) {
-  dataKey = key; S.setKey(key); await S.loadAll(); lastReauth = Date.now();
+  myRole = roleOf(await getMeta()); dataKey = key; S.setKey(key); await S.loadAll(); lastReauth = Date.now();
   await secEvent('Signed in'); await S.log('security', 'Signed in');
 }
 export const needsTotp = async () => !!(await getMeta()).totp;
@@ -111,4 +118,9 @@ export const currentKey = () => dataKey;
 export async function lock(reason = 'Signed out') {
   try { await secEvent(reason); await S.log('security', reason); } catch { }
   dataKey = null; S.setKey(null); location.hash = ''; location.reload();
+}
+export async function becomeOwner(ownerKey) {
+  if (!(await isOwnerKey(ownerKey))) throw new Error('That owner key is not valid.');
+  const m = await getMeta(); m.role = 'owner'; await db.meta.set('auth', m); myRole = 'owner';
+  await secEvent('Account upgraded to owner'); await S.log('security', 'Account upgraded to owner');
 }

@@ -27,29 +27,38 @@ function meter(inp) {
 function authBox(...kids) { clear(root); root.append(h('div', { class: 'auth' }, h('div', { class: 'box' }, h('div', { class: 'brand' }, h('div', { class: 'logo' }), h('span', null, 'Ultimate Texture Studio')), ...kids))); }
 
 function setupScreen() {
+  const fromLink = (location.hash.match(/owner=([A-Za-z0-9-]+)/) || [])[1] || '';
+  if (fromLink) history.replaceState(null, '', location.pathname);
+  const ownerKey = h('input', { type: 'password', value: fromLink, placeholder: 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX' });
+  const isOwnerSetup = h('input', { type: 'checkbox', checked: !!fromLink });
+  const ownerBox = h('div', { class: 'f', hidden: !fromLink }, h('label', null, 'Owner key'), ownerKey, h('div', { class: 'small dim' }, 'Only the studio owner has this key. It adds the Admin Panel.'));
   const u = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false' }), p = h('input', { type: 'password', autocomplete: 'new-password' }), p2 = h('input', { type: 'password', autocomplete: 'new-password' });
   const email = h('input', { type: 'email', placeholder: 'Optional' }); const err = h('div', { class: 'err' });
   const useQ = h('input', { type: 'checkbox' }); const qs = [0, 1].map(i => ({ q: h('input', { type: 'text', placeholder: ['e.g. First pet name?', 'e.g. City you grew up in?'][i] }), a: h('input', { type: 'text', placeholder: 'Answer' }) }));
   const qBox = h('div', { hidden: true }, qs.map((q, i) => h('div', { class: 'g2' }, h('div', { class: 'f' }, h('label', null, 'Question ' + (i + 1)), q.q), h('div', { class: 'f' }, h('label', null, 'Answer'), q.a))));
   useQ.onchange = () => qBox.hidden = !useQ.checked;
-  const btn = h('button', { class: 'btn pri', style: { width: '100%', justifyContent: 'center' } }, 'Create administrator account');
+  const title = h('h2', null, fromLink ? 'Owner setup' : 'Create your account');
+  isOwnerSetup.onchange = () => { ownerBox.hidden = !isOwnerSetup.checked; title.textContent = isOwnerSetup.checked ? 'Owner setup' : 'Create your account'; btn.textContent = isOwnerSetup.checked ? 'Create owner account' : 'Create account'; };
+  const btn = h('button', { class: 'btn pri', style: { width: '100%', justifyContent: 'center' } }, fromLink ? 'Create owner account' : 'Create account');
   btn.onclick = async () => {
     err.textContent = '';
+    if (isOwnerSetup.checked && !ownerKey.value.trim()) return err.textContent = 'Enter the owner key, or untick the owner option.';
     if (u.value.trim().length < 3) return err.textContent = 'Username needs at least 3 characters.';
     if (p.value.length < 10) return err.textContent = 'Password needs at least 10 characters.';
     if (passwordScore(p.value) < 2) return err.textContent = 'Password is too weak. Mix upper and lower case, numbers or symbols.';
     if (p.value !== p2.value) return err.textContent = 'Passwords do not match.';
     let questions = null; if (useQ.checked) { questions = qs.map(q => ({ q: q.q.value.trim(), a: q.a.value })); if (questions.some(q => !q.q || q.a.trim().length < 2)) return err.textContent = 'Fill in both questions and answers, or turn them off.'; }
-    btn.disabled = true; btn.textContent = 'Creating secure account...';
-    try { const codes = await A.setup({ username: u.value, password: p.value, email: email.value, questions }); showCodes(codes, () => startStudio()); }
-    catch (e) { err.textContent = e.message; btn.disabled = false; btn.textContent = 'Create administrator account'; }
+    const label = btn.textContent; btn.disabled = true; btn.textContent = 'Creating secure account...';
+    try { const codes = await A.setup({ username: u.value, password: p.value, email: email.value, questions, ownerKey: isOwnerSetup.checked ? ownerKey.value : '' }); showCodes(codes, () => startStudio()); }
+    catch (e) { err.textContent = e.message; btn.disabled = false; btn.textContent = label; }
   };
-  authBox(h('h2', null, 'First-time setup'), h('p', { class: 'muted' }, 'Create the owner account for this studio. There is no public sign-up. This screen will not appear again.'),
-    h('div', { class: 'f' }, h('label', null, 'Administrator username'), u),
+  authBox(title, h('p', { class: 'muted' }, 'Your account and everything you make stay in this browser on this device. Nothing is uploaded.'),
+    h('div', { class: 'f' }, h('label', null, 'Username'), u),
     h('div', { class: 'f' }, h('label', null, 'Password (10+ characters)'), p, ...meter(p)),
     h('div', { class: 'f' }, h('label', null, 'Confirm password'), p2),
     h('div', { class: 'f' }, h('label', null, 'Recovery email'), email, h('div', { class: 'small dim' }, 'Kept for your records. This app has no mail server, so recovery uses codes or questions.')),
-    h('label', { class: 'chk' }, useQ, 'Also allow recovery with security questions'), qBox, err, btn,
+    h('label', { class: 'chk' }, useQ, 'Also allow recovery with security questions'), qBox,
+    h('label', { class: 'chk' }, isOwnerSetup, 'I am the studio owner'), ownerBox, err, btn,
     h('p', { class: 'small dim', style: { marginTop: '12px' } }, 'Your password is never stored. It unlocks an encryption key that protects all studio data in this browser.'));
 }
 function showCodes(codes, next) {
@@ -119,7 +128,7 @@ let shell, mainEl, crumbsEl, statusMsg, statusTasks, statusStore, idleTimer, las
 function startStudio() {
   applyLook(); const s = S.settings();
   const navEl = h('nav', { class: 'nav' });
-  for (const [id, label, ic, grp] of NAV) { if (grp) navEl.append(h('div', { class: 'grp' }, grp)); navEl.append(h('a', { href: '#/' + id, 'data-id': id, title: label }, icon(ic), h('span', null, label))); }
+  for (let [id, label, ic, grp] of NAV) { if (id === 'admin' && !A.isOwner()) { label = 'My Account'; ic = 'user'; } if (grp) navEl.append(h('div', { class: 'grp' }, grp)); navEl.append(h('a', { href: '#/' + id, 'data-id': id, title: label }, icon(ic), h('span', null, label))); }
   crumbsEl = h('div', { class: 'crumbs' });
   const tb = (ic, title, fn, id) => h('button', { class: 'btn ghost icon', title, id, onclick: fn }, icon(ic));
   const search = globalSearch();
@@ -168,7 +177,8 @@ async function lockNow(reason) { try { await nav.ctrl?.autosave?.(); } catch { }
 const loaded = {};
 async function route() {
   const [, id = 'dashboard', ...rest] = (location.hash || '#/dashboard').split('/'); const arg = rest.length ? decodeURIComponent(rest.join('/')) : null;
-  const def = [...NAV, ...HIDDEN].find(n => n[0] === id) || NAV[0];
+  let def = [...NAV, ...HIDDEN].find(n => n[0] === id) || NAV[0];
+  if (def[0] === 'admin' && !A.isOwner()) def = ['admin', 'My Account', 'user'];
   if (nav.ctrl?.leave && !(await nav.ctrl.leave())) { history.replaceState(null, '', '#/' + nav.current + (nav.arg ? '/' + encodeURIComponent(nav.arg) : '')); return; }
   if (def[0] === 'admin' && !A.recentlyReauthed()) { if (!(await reauth())) { history.replaceState(null, '', '#/' + (nav.current || 'dashboard')); return; } }
   try { await nav.ctrl?.autosave?.(); } catch (e) { S.err('Autosave on leave', e); }
@@ -188,8 +198,8 @@ async function route() {
 async function reauth() {
   const p = h('input', { type: 'password', style: { width: '100%' } }); const err = h('div', { class: 'small', style: { color: 'var(--bad)' } });
   return modal({
-    title: 'Confirm it is you', body: h('div', null, h('p', { class: 'muted' }, 'The Admin Panel contains security and storage controls. Enter your password to continue.'), p, err),
-    actions: [{ label: 'Cancel', value: false }, { label: 'Unlock admin', cls: 'pri', run: async () => { if (await A.verifyPassword(p.value)) return true; err.textContent = 'Wrong password.'; return false; } }],
+    title: 'Confirm it is you', body: h('div', null, h('p', { class: 'muted' }, (A.isOwner() ? 'The Admin Panel' : 'My Account') + ' contains security and storage controls. Enter your password to continue.'), p, err),
+    actions: [{ label: 'Cancel', value: false }, { label: 'Unlock', cls: 'pri', run: async () => { if (await A.verifyPassword(p.value)) return true; err.textContent = 'Wrong password.'; return false; } }],
   });
 }
 
