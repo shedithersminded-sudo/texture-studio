@@ -27,7 +27,7 @@ function meter(inp) {
 function authBox(...kids) { clear(root); root.append(h('div', { class: 'auth' }, h('div', { class: 'box' }, h('div', { class: 'brand' }, h('div', { class: 'logo' }), h('span', null, 'Ultimate Texture Studio')), ...kids))); }
 
 function setupScreen() {
-  const u = h('input', { type: 'text', autocomplete: 'username' }), p = h('input', { type: 'password', autocomplete: 'new-password' }), p2 = h('input', { type: 'password', autocomplete: 'new-password' });
+  const u = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false' }), p = h('input', { type: 'password', autocomplete: 'new-password' }), p2 = h('input', { type: 'password', autocomplete: 'new-password' });
   const email = h('input', { type: 'email', placeholder: 'Optional' }); const err = h('div', { class: 'err' });
   const useQ = h('input', { type: 'checkbox' }); const qs = [0, 1].map(i => ({ q: h('input', { type: 'text', placeholder: ['e.g. First pet name?', 'e.g. City you grew up in?'][i] }), a: h('input', { type: 'text', placeholder: 'Answer' }) }));
   const qBox = h('div', { hidden: true }, qs.map((q, i) => h('div', { class: 'g2' }, h('div', { class: 'f' }, h('label', null, 'Question ' + (i + 1)), q.q), h('div', { class: 'f' }, h('label', null, 'Answer'), q.a))));
@@ -63,7 +63,7 @@ function showCodes(codes, next) {
 }
 async function loginScreen(msg) {
   const remembered = localStorage.getItem('uts-remember') || '';
-  const u = h('input', { type: 'text', value: remembered, autocomplete: 'username' }), p = h('input', { type: 'password', autocomplete: 'current-password' });
+  const u = h('input', { type: 'text', value: remembered, autocomplete: 'off', spellcheck: 'false' }), p = h('input', { type: 'password', autocomplete: 'current-password' });
   const rem = h('input', { type: 'checkbox', checked: !!remembered }); const err = h('div', { class: 'err' }, msg || '');
   const btn = h('button', { class: 'btn pri', style: { width: '100%', justifyContent: 'center' } }, icon('lock'), 'Sign in');
   const submit = async () => {

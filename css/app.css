@@ -237,3 +237,5 @@ table.t tr:hover td{background:var(--panel2)}
   .ws>.r{border-left:none;border-top:1px solid var(--line)}
   .ws>.r>.resizer{display:none}
 }
+
+.secret{-webkit-text-security:disc;text-security:disc;font-family:inherit;letter-spacing:.08em}

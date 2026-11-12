@@ -1,5 +1,8 @@
 // Small DOM toolkit shared by every section.
 export function h(tag, props, ...kids) {
+  // Password boxes are plain text boxes drawn as dots. That keeps the browser's password manager away:
+  // Brave 157 crashes the whole browser when its manager asks Windows Hello about these fields.
+  if (tag === 'input' && props?.type === 'password') props = { ...props, type: 'text', class: ((props.class || '') + ' secret').trim(), autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off', 'data-1p-ignore': true, 'data-lpignore': 'true', 'data-bwignore': true, 'data-form-type': 'other' };
   const el = document.createElement(tag);
   if (props) for (const [k, v] of Object.entries(props)) {
     if (v == null || v === false) continue;
