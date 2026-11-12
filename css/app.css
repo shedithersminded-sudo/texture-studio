@@ -307,7 +307,7 @@ table.t tr:hover td{background:var(--panel2)}
   --gray:linear-gradient(180deg,#a9adb2,#7d8187);
   color-scheme:dark;
 }
-[data-theme="clear"] body{background:radial-gradient(130% 90% at 50% 40%,transparent 40%,rgba(4,6,12,.7)),linear-gradient(rgba(var(--tint),.12),rgba(var(--tint),.12)),linear-gradient(rgba(14,16,26,.4),rgba(14,16,26,.4)),url(pcb.svg) 0 0/480px 480px,#11161f;background-attachment:fixed}
+[data-theme="clear"] body{background:radial-gradient(130% 90% at 50% 40%,transparent 40%,rgba(4,6,12,.7)),linear-gradient(rgba(var(--tint),.12),rgba(var(--tint),.12)),linear-gradient(rgba(14,16,26,.4),rgba(14,16,26,.4)),url(pcb.svg) 0 0/640px 640px,#11161f;background-attachment:fixed}
 [data-theme="clear"] .shell{background:transparent}
 [data-theme="clear"] .main{background:rgba(10,12,22,.3)}
 /* molded clear surfaces */
